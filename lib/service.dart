@@ -1,26 +1,23 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'package:http/http.dart' as http;
 import 'package:recipeapp/model/recipe.dart';
 
-class RecipeApi {
-  static Future<List<Recipe>> getRecipe() async {
-    var uri = Uri.https('yummly2.p.rapidapi.com', '/feeds/list',
-        {"limit": "18", "start": "0", "tag": "list.recipe.popular"});
+const apiKey = 'aac424d1e85c48af9d27a803c993c25c';
 
-    final response = await http.get(uri, headers: {
-      "x-rapidapi-key": "94af2a0c98mshc3599e361a44e63p1311d2jsndda7610a4b5e",
-      "x-rapidapi-host": "yummly2.p.rapidapi.com",
-      "useQueryString": "true"
-    });
+class Services {
+  static Future<RecipeList> getRecipe(String productUrl) async {
+    final response = await http.get(Uri.parse(productUrl));
+    if (response.statusCode == 200 || response.statusCode == 304) {
+      final decodedResponse = jsonDecode(response.body);
 
-    Map data = jsonDecode(response.body);
-    List temp = [];
-
-    for (var i in data['feed']) {
-      temp.add(i['content']['details']);
+      final productList = RecipeList.fromJson(decodedResponse);
+      return productList;
+    } else {
+      throw Exception('Failed to fetch data');
     }
-
-    return Recipe.recipesFromSnapshot(temp);
   }
+
+  static Future<RecipeList> futureData = Future<RecipeList>(() =>
+      Services.getRecipe(
+          "https://api.spoonacular.com/recipes/random?apiKey=$apiKey&number=10"));
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:recipeapp/model/recipe.dart';
 import 'package:recipeapp/service.dart';
+import 'package:recipeapp/views/detail_widget.dart';
 import 'package:recipeapp/widgets/recipe_card.dart';
 
 class HomePage extends StatefulWidget {
@@ -25,18 +26,30 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         body: FutureBuilder(
-          future: RecipeApi.getRecipe(),
-          builder: (context, AsyncSnapshot<List<Recipe>> snapshot) {
+          future: Services.futureData,
+          builder: (context, AsyncSnapshot<RecipeList> snapshot) {
             if (snapshot.hasData) {
-              List<Recipe>? recipes = snapshot.data;
+              RecipeList? recipe = snapshot.data;
               return ListView.builder(
-                itemCount: recipes?.length,
+                itemCount: recipe?.recipes?.length,
                 itemBuilder: (context, index) {
+                  Recipe selectedRecipe = recipe!.recipes![index];
                   return RecipeCard(
-                      title: recipes?[index].name ?? '',
-                      cookTime: recipes?[index].totalTime ?? '',
-                      rating: recipes?[index].rating.toString() ?? '',
-                      thumbnailUrl: recipes?[index].images ?? '');
+                      callback: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => DetailWidget(
+                              recipe: selectedRecipe,
+                            ),
+                          ),
+                        );
+                      },
+                      title: recipe.recipes?[index].title ?? '',
+                      cookTime:
+                          recipe.recipes?[index].readyInMinutes.toString() ??
+                              '',
+                      rating: "${recipe.recipes?[index].pricePerServing}",
+                      thumbnailUrl: recipe.recipes?[index].image ?? '');
                 },
               );
             }
